@@ -1,85 +1,54 @@
 // ==UserScript==
 // @name         Jira Copy botton
-// @namespace    
+// @namespace
 // @version      0.0.1
 // @description  features: 1. copy issue key and title for creating git branch
 // @author       Jiaheng
 // @license      MIT
 // @match        https://reagroup.atlassian.net/*/**
 // @grant        none
-
-// @require      https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js
+// @require      http://code.jquery.com/jquery-1.11.0.min.js
 
 // ==/UserScript==
 
-(function($, JIRA) {
-    'use strict';
+(function() {
+  'use strict';
+
+    // Your code here...
+    $(document).ready(function(){
+      init();
+    });
 
     function addCopyButton() {
-      // console.info('addCopyButton');
+      $('.sc-ivVeuv.jVczlD').each(function() {
+        var copyText = getIssueFullTitle($(this));
+        $(this).after("<a id='clipboardBtn' class='btn aui-button aui-button-primary aui-style' value='" + copyText + "'>Copy issue title&number</a>");
+        $(this).parent().find('#clipboardBtn').on('click', function() {
+          var textArea = document.createElement( "textarea" );
+          textArea.value = $(this).attr('value');
+          document.body.appendChild( textArea );
+          textArea.select();
 
-      if(!$('#clipboardBtn').next().length) {
-        $('#clipboardBtn').remove();
-        var container = $("#THIRD_PARTY_TAB .call-to-actions, .toolbar-split-left");
-        container.append("<a id='clipboardBtn' class='btn aui-button aui-button-primary aui-style'>Copy issue title</a>");
-      }
+          try {
+            var successful = document.execCommand( 'copy' );
+            var msg = successful ? 'successful' : 'unsuccessful';
+            console.log('Copying ['+$(this).attr('value')+'] command was ' + msg);
+            $(this).text('Copied issue title&number');
+          } catch (err) {
+            console.log('Oops, unable to copy',err);
+          }
+          document.body.removeChild( textArea );
+        });
+      });
     }
 
-    function getIssueFullTitle () {
-      var issueKey = "";
-      var issueTitle = $('#summary-val').text();
-      if($('#issuekey-val').length){
-        issueKey = $('#issuekey-val').text();
-      }
-      if($('#key-val').length){
-        issueKey = $('#key-val').text();
-      }
-
+    function getIssueFullTitle (obj) {
+      var issueKey = obj.find('.sc-lnmtFM.lLLKd span').text();
+      var issueTitle = obj.find('.sc-FQuPU.fjrIUy span').text();
       return issueKey + ' ' + issueTitle;
     }
 
-    function handleCopyButton () {
-      // console.info('handleCopyButton');
-
-      var clipboard = new Clipboard('#clipboardBtn', {
-        text: function(trigger) {
-          return getIssueFullTitle();
-        }
-      });
-
-      clipboard.on('success', function(e) {
-        $.notify("Copied to clipboard", "success");
-        $.notify(getIssueFullTitle(), "success");
-      });
-
-      clipboard.on('error', function(e) {
-        $.notify("Access granted", "error");
-      });
-    }
-
     function init() {
-      // console.info("init");
-      updateHandlers();
-      handleCopyButton();
-      addCopyButton();
-
-      JIRA.bind(JIRA.Events.NEW_CONTENT_ADDED, function() {
-        updateHandlers();
-      });
-    }
-
-    function updateHandlers() {
-      // console.info('updateHandlers');
       addCopyButton();
     }
-
-    // init when page ready
-    document.onreadystatechange = function() {
-      if (document.readyState == "complete") {
-        init();
-      }
-    };
-
-
-})(window.$, window.JIRA);
+  })();
