@@ -20,7 +20,7 @@
     });
 
     function addCopyButton() {
-      $('.sc-ivVeuv.jVczlD').each(function() {
+      $('div[id^="card-"]').each(function() {
         var copyText = getIssueFullTitle($(this));
         $(this).after("<a id='clipboardBtn' class='btn aui-button aui-button-primary aui-style' value='" + copyText + "'>Copy issue title&number</a>");
         $(this).parent().find('#clipboardBtn').on('click', function() {
